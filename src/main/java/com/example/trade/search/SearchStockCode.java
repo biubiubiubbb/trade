@@ -20,8 +20,8 @@ public class SearchStockCode {
     private static final String BREAK_STOCK_REDIS_KEY_PREFIX = "break-stock-gap-";
 
     public static void main(String[] args) {
-        LocalDate startDate = LocalDate.of(2023, 1, 1);
-        LocalDate endDate = LocalDate.of(2025, 6, 14);
+        LocalDate startDate = LocalDate.of(2025, 6, 10);
+        LocalDate endDate = LocalDate.of(2025, 6, 10);
         // 高开的点数
         List<BigDecimal> gapList = BreakStockDataCenter.getSupportGaps();
         LocalDate date = startDate;
@@ -38,7 +38,7 @@ public class SearchStockCode {
                 date = DataCenter.getNextTradeDate(date);
             }
             String redisKey = BREAK_STOCK_REDIS_KEY_PREFIX + gap;
-            RedisUtil.setMapList(redisKey, map);
+//            RedisUtil.setMapList(redisKey, map);
             date = startDate;
             log.info("gap {} 加载结束", gap);
         }
@@ -50,6 +50,7 @@ public class SearchStockCode {
         String keyword = StockKeywordBuilder.buildKeyword(yesterday, today, gap);
         StockQueryRequest request = new StockQueryRequest();
         request.setKeyWord(keyword);
+        System.out.println(keyword);
         String post = HttpUtil.post(url, JSON.toJSONString(request));
         StockQueryResponse stockQueryResponse = JSON.parseObject(post, StockQueryResponse.class);
         StockDataProcessor processor = new StockDataProcessor();

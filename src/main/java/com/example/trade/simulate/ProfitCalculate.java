@@ -87,7 +87,7 @@ public class ProfitCalculate {
     public <T extends StockProfit> List<StatisticProfit> calMonthlyProfit(List<T> stockProfits) {
         // 按月份分组
         Map<String, List<StockProfit>> monthlyProfits = stockProfits.stream()
-                .collect(Collectors.groupingBy(p -> p.getSellDate().format(DateTimeFormatter.ofPattern("yyyy-MM"))));
+                .collect(Collectors.groupingBy(p -> p.getBuyDate().format(DateTimeFormatter.ofPattern("yyyy-MM"))));
 
         List<StatisticProfit> statistics = new ArrayList<>();
 
@@ -101,6 +101,7 @@ public class ProfitCalculate {
             BigDecimal totalSellAmount = BigDecimal.ZERO;
             int profitCount = 0;
             int lossCount = 0;
+            int count = 0;
             BigDecimal maxProfit = BigDecimal.ZERO;
             BigDecimal maxProfitRate = BigDecimal.ZERO;
             BigDecimal maxLoss = BigDecimal.ZERO;
@@ -119,22 +120,24 @@ public class ProfitCalculate {
                     profitCount++;
                     if (profit.getProfit().compareTo(maxProfit) > 0) {
                         maxProfit = profit.getProfit();
-                        maxProfitStock = profit.getName();
+                        maxProfitStock = profit.getName() + "(" + profit.getBuyDate() + "买入)";
                     }
                     if (profit.getProfitRate().compareTo(maxProfitRate) > 0) {
                         maxProfitRate = profit.getProfitRate();
                         maxProfitRateStock = profit.getName();
                     }
-                } else {
+                } else if (profit.getProfit().compareTo(maxLoss) <= 0){
                     lossCount++;
                     if (profit.getProfit().compareTo(maxLoss) < 0) {
                         maxLoss = profit.getProfit();
-                        maxLossStock = profit.getCode();
+                        maxLossStock = profit.getName() + "(" + profit.getBuyDate() + "买入)";
                     }
                     if (profit.getProfitRate().compareTo(maxLossRate) < 0) {
                         maxLossRate = profit.getProfitRate();
-                        maxLossRateStock = profit.getCode();
+                        maxLossRateStock = profit.getName();
                     }
+                } else {
+                    count++;
                 }
             }
 
@@ -159,6 +162,7 @@ public class ProfitCalculate {
             statistic.setMaxLossRate(maxLossRate);
             statistic.setMaxLossRateStock(maxLossRateStock);
             statistic.setMonth(month);
+            statistic.setCount(count);
             statistics.add(statistic);
         }
         statistics.sort(Comparator.comparing(StatisticProfit::getMonth).reversed());

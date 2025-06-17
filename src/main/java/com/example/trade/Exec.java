@@ -63,6 +63,26 @@ public class Exec {
         }
     }
 
+    public static <T> void write(String fileName, List<String> sheetNameList, List<List<T>> dataList, Class<T> clazz) {
+        File file = new File(fileName);
+        if (file.exists()) {
+            // 如果文件已存在，追加数据
+            try (ExcelWriter excelWriter = EasyExcel.write(fileName, clazz).build()) {
+                for (int i = 0; i < sheetNameList.size(); i++) {
+                    WriteSheet writeSheet = EasyExcel.writerSheet(i, sheetNameList.get(i)).build();
+                    excelWriter.write(dataList.get(i), writeSheet);
+                }
+            }
+        } else {
+            try (ExcelWriter excelWriter = EasyExcel.write(fileName, clazz).build()) {
+                for (int i = 0; i < sheetNameList.size(); i++) {
+                    WriteSheet writeSheet = EasyExcel.writerSheet(i, sheetNameList.get(i)).build();
+                    excelWriter.write(dataList.get(i), writeSheet);
+                }
+            }
+        }
+    }
+
     public static <T> List<T> read(String fileName, Class<T> clazz) {
         File file = new File(fileName);
         if (file.exists()) {

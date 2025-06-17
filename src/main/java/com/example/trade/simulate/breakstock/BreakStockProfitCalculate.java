@@ -26,6 +26,9 @@ public class BreakStockProfitCalculate extends ProfitCalculate {
         List<BreakStockStockProfit> profits = new ArrayList<>();
         for (BreakStock breakStock : breakStockList) {
             BreakStockStockProfit profit = this.calculateOne(breakStock);
+            if(profit == null) {
+                continue;
+            }
             profits.add(profit);
         }
         return profits;
@@ -42,17 +45,25 @@ public class BreakStockProfitCalculate extends ProfitCalculate {
         profit.setCallAuctionTradeAmount(breakStock.getCallAuctionTradeAmount());
         profit.setCallAuctionTradeAmountPrev(breakStock.getCallAuctionTradeAmountPrev());
 
+        // 交易信息
         TradingResult tradingResult = calculateTradingResult(breakStock.getCode(), breakStock.getTradeDate(), gap);
+        if (tradingResult == null) {
+            profit.setRemark("未达到买入条件");
+            return null;
+        }
+        profit.setProfit(tradingResult.getProfit());
+        profit.setBuyAmount(tradingResult.getBuyAmount());
+        profit.setBuyAvgPrice(tradingResult.getBuyAvgPrice());
+        profit.setBuyPrices(tradingResult.getBuyPrices());
+        profit.setSellAmount(tradingResult.getSellAmount());
+        profit.setSellAvgPrice(tradingResult.getSellAvgPrice());
+        profit.setSellPoints(tradingResult.getSellPoints());
+        profit.setSellPrices(tradingResult.getSellPrices());
+        profit.setHoldingDays(tradingResult.getHoldingDays());
+        profit.setProfitRate(tradingResult.getProfitRate());
+        profit.setBuyPoints(tradingResult.getBuyPoints());
+        profit.setSellDate(tradingResult.getSellDate());
         log.info("计算结果：{}", tradingResult);
-        // 买卖点
-        // 第一天买：
-
-        // 第二天、第三买/卖
-
-        // 第四天，第五天卖
-
-        // 收益
-
         return profit;
     }
 
@@ -65,7 +76,6 @@ public class BreakStockProfitCalculate extends ProfitCalculate {
         List<TradingPoint> buyPoints = new ArrayList<>();
         result.setBuyPoints(buyPoints);
 
-        int dayIndex = 0;
         // 第一天只能买
         Snapshot firstSnapshot = DataCenter.getSnapshot(code, tradeDate, null);
         if (firstSnapshot == null) {
@@ -112,6 +122,10 @@ public class BreakStockProfitCalculate extends ProfitCalculate {
             } else {
                 break; // 买点低于最低价，停止买入
             }
+        }
+        // 第一天没有买入，则返回null
+        if (buyPoints.isEmpty()) {
+            return null;
         }
         // 第二天和第三天 - 可以买或卖
         for (int day = 1; day <= 2; day++) {

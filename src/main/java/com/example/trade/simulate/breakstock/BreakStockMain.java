@@ -17,10 +17,13 @@ import java.util.Map;
 public class BreakStockMain {
 
     public static void main(String[] args) {
-        LocalDate startDate = LocalDate.of(2025, 6, 1);
-        LocalDate endDate = LocalDate.of(2025, 6, 11);
+        LocalDate startDate = LocalDate.of(2023, 1, 1);
+        LocalDate endDate = LocalDate.of(2025, 6, 13);
         BreakStockProfitCalculate calculator = new BreakStockProfitCalculate();
         List<BigDecimal> supportGaps = BreakStockDataCenter.getSupportGaps();
+        List<String> sheetNameList = supportGaps.stream().map(gap -> "高开" + gap + "点").toList();
+        List<List<BreakStockStockProfit>> profitList = new ArrayList<>();
+        List<List<StatisticProfit>> statisticProfitList = new ArrayList<>();
         for (BigDecimal gap : supportGaps) {
             Map<String, List<BreakStock>> breakStockMap = BreakStockDataCenter.getBreakStockList(gap);
             List<BreakStockStockProfit> allProfitList = new ArrayList<>();
@@ -32,17 +35,25 @@ public class BreakStockMain {
                     continue;
                 }
                 List<BreakStock> breakStocks = breakStockMap.get(date.toString());
+                if (breakStocks.isEmpty()) {
+                    log.info("gap {} date {} 无数据", gap, date);
+                    date = DataCenter.getPrevTradeDate(date);
+                    continue;
+                }
                 List<BreakStockStockProfit> profits = calculator.calculateBreakStockProfit(breakStocks);
-                if(profits.isEmpty()) {
-                   continue;
+                if (profits.isEmpty()) {
+                    date = DataCenter.getPrevTradeDate(date);
+                    continue;
                 }
                 allProfitList.addAll(profits);
                 date = DataCenter.getPrevTradeDate(date);
             }
             List<StatisticProfit> statisticProfits = calculator.calMonthlyProfit(allProfitList);
-            Exec.write(String.format("昨日上影线曾涨停-今日高开%s点-收益明细", gap), "", allProfitList, BreakStockStockProfit.class);
-            Exec.write(String.format("昨日上影线曾涨停-今日高开%s点-收益统计", gap), "", statisticProfits, StatisticProfit.class);
+            profitList.add(allProfitList);
+            statisticProfitList.add(statisticProfits);
         }
+        Exec.write("昨日上影线曾涨停-收益明细.xlsx", sheetNameList, profitList, BreakStockStockProfit.class);
+        Exec.write("昨日上影线曾涨停-收益统计.xlsx", sheetNameList, statisticProfitList, StatisticProfit.class);
     }
 
 

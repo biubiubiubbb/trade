@@ -25,7 +25,7 @@ public class SnapshotCrawler {
         Set<String> existCodes = existMap.keySet();
         List<Snapshot> saveList = new ArrayList<>(codes.size() * 1000);
         codes = new HashSet<>(Sets.difference(codes, existCodes));
-        codes.removeIf(code -> MarketType.getMarketType(code) == MarketType.BEIJING_EXCHANGE);
+//        codes.removeIf(code -> MarketType.getMarketType(code) == MarketType.BEIJING_EXCHANGE);
         int i = 1;
         int errCount = 0;
         System.out.println("股票总数：" + codes.size());
@@ -37,9 +37,10 @@ public class SnapshotCrawler {
             params.put("end_date", endDate.format(DateTimeFormatter.ofPattern("yyyyMMdd")));
             // 默认返回不复权的数据; qfq: 返回前复权后的数据; hfq: 返回后复权后的数据
             params.put("adjust", "qfq");
-            String body = HttpUtil.get("http://127.0.0.1:8067/api/public/stock_zh_a_hist", params);
+            System.out.println("code " + code + " i " + i);
+            String body = "";
             try {
-                List<Snapshot> list = JSON.parseArray(body, Snapshot.class);
+                body = HttpUtil.get("http://127.0.0.1:8067/api/public/stock_zh_a_hist", params, 10 * 1000);                List<Snapshot> list = JSON.parseArray(body, Snapshot.class);
                 saveList.addAll(list);
             } catch (Exception e) {
                 if (errCount++ > 10) {
@@ -47,7 +48,7 @@ public class SnapshotCrawler {
                     break;
                 }
                 log.warn("code {} body:{} 数据加载异常", code, body, e);
-                ThreadUtil.sleep(10000);
+                ThreadUtil.sleep(1000);
             }
             i++;
             System.out.println(i);

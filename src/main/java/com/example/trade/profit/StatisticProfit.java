@@ -22,6 +22,8 @@ public class StatisticProfit implements Serializable {
     private int profitCount;
     @ExcelProperty("亏损次数")
     private int lossCount;
+    @ExcelProperty("不赚不亏次数")
+    private int count;
     @ExcelProperty("买入总金额")
     private BigDecimal buyAmount;
     @ExcelProperty("卖出总金额")

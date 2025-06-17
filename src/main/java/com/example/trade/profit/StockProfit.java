@@ -44,5 +44,7 @@ public class StockProfit implements Serializable {
     private String sellPrices;
     @ExcelProperty("持有天数")
     private int holdingDays;
+    @ExcelProperty("备注")
+    private String remark;
 
 }

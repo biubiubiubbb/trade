@@ -66,6 +66,9 @@ public class DataCenter {
         if (snapshot != null) {
             return snapshot;
         }
+        if (date.isAfter(LocalDate.now())) {
+            return null;
+        }
         String dateStr = date.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         Map<String, Object> params = new HashMap<>();
         params.put("symbol", code);
@@ -83,10 +86,12 @@ public class DataCenter {
             if (getNextIfNotExist == null) {
                 log.error("code {} date {} body {} 数据不存在", code, date, body);
             } else if (getNextIfNotExist) {
-                log.error("code {} date {} body {} 数据不存在 {} 尝试获取下一个交易日数据", code, date, body, getNextTradeDate(date));
+                LocalDate nextTradeDate = getNextTradeDate(date);
+                log.error("code {} date {} body {} 数据不存在 {} 尝试获取下一个交易日数据", code, date, body, nextTradeDate);
                 return getSnapshot(code, getNextTradeDate(date), getNextIfNotExist);
             } else {
-                log.error("code {} date {} body {} 数据不存在 {} 尝试获取上一个交易日数据", code, date, body, getPrevTradeDate(date));
+                LocalDate prevTradeDate = getPrevTradeDate(date);
+                log.error("code {} date {} body {} 数据不存在 {} 尝试获取上一个交易日数据", code, date, body, prevTradeDate);
                 return getSnapshot(code, getPrevTradeDate(date), getNextIfNotExist);
             }
         }
