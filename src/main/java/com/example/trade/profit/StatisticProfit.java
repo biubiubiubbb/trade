@@ -28,21 +28,17 @@ public class StatisticProfit implements Serializable {
     private BigDecimal buyAmount;
     @ExcelProperty("卖出总金额")
     private BigDecimal sellAmount;
-    @ExcelProperty("最大盈利金额股票")
+    @ExcelProperty("最大收益股票")
     private String maxProfitStock;
-    @ExcelProperty("最大盈利金额")
+    @ExcelProperty("最大收益金额")
     private BigDecimal maxProfit;
-    @ExcelProperty("最大盈利比例")
+    @ExcelProperty("最大收益率")
     private BigDecimal maxProfitRate;
-    @ExcelProperty("最大盈利比例股票")
-    private String maxProfitRateStock;
+    @ExcelProperty("最大亏损股票")
+    private String maxLossStock;
     @ExcelProperty("最大亏损金额")
     private BigDecimal maxLoss;
-    @ExcelProperty("最大亏损金额股票")
-    private String maxLossStock;
-    @ExcelProperty("最大亏损比例")
+    @ExcelProperty("最大亏损率")
     private BigDecimal maxLossRate;
-    @ExcelProperty("最大亏损比例股票")
-    private String maxLossRateStock;
 
 }

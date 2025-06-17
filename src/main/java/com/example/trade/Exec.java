@@ -1,19 +1,21 @@
 package com.example.trade;
 
+import cn.hutool.core.collection.CollUtil;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelWriter;
 import com.alibaba.excel.read.listener.PageReadListener;
 import com.alibaba.excel.util.StringUtils;
 import com.alibaba.excel.write.metadata.WriteSheet;
 import com.example.trade.profit.StatisticProfit;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
+@Slf4j
 public class Exec {
 
     public static void main(String[] args) {
@@ -45,7 +47,7 @@ public class Exec {
 
     public static <T> void write(String fileName, String sheetName, List<T> dataList, Class<T> clazz) {
         File file = new File(fileName);
-        if(StringUtils.isEmpty(sheetName)) {
+        if (StringUtils.isEmpty(sheetName)) {
             sheetName = "Sheet1";
         }
         if (file.exists()) {
@@ -94,5 +96,24 @@ public class Exec {
         } else {
             return Collections.emptyList();
         }
+    }
+
+    public static <T, R> List<T> runAsync(Function<R, List<T>> fun, Collection<R> params) {
+        List<CompletableFuture<List<T>>> futureList = new ArrayList<>();
+        for (R param : params) {
+            futureList.add(CompletableFuture.supplyAsync(() -> fun.apply(param)));
+        }
+        List<T> list = new ArrayList<>();
+        for (CompletableFuture<List<T>> future : futureList) {
+            try {
+                List<T> ts = future.get();
+                if (CollUtil.isNotEmpty(ts)) {
+                    list.addAll(ts);
+                }
+            } catch (Exception e) {
+                log.error("执行异常", e);
+            }
+        }
+        return list;
     }
 }

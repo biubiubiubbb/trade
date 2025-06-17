@@ -127,6 +127,12 @@ public class BreakStockProfitCalculate extends ProfitCalculate {
         if (buyPoints.isEmpty()) {
             return null;
         }
+//        Pair<BigDecimal, LocalDate> mustSellPair = mustSell(code, result.getBuyAvgPrice(), DataCenter.getNextTradeDate(tradeDate));
+//        if(mustSellPair != null) {
+//            TradingPoint sellPoint = getSellPoint(result, mustSellPair);
+//            result.setSellPoint(sellPoint);
+//            return result;
+//        }
         // 第二天和第三天 - 可以买或卖
         for (int day = 1; day <= 2; day++) {
             tradeDate = DataCenter.getNextTradeDate(tradeDate);

@@ -6,6 +6,7 @@ import com.example.trade.DataCenter;
 import com.example.trade.Snapshot;
 import com.example.trade.profit.StatisticProfit;
 import com.example.trade.profit.StockProfit;
+import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class ProfitCalculate {
 
     // 每次买入大约1w
@@ -39,6 +41,32 @@ public class ProfitCalculate {
 
     protected BigDecimal calBuyQuantity(BigDecimal buyPrice) {
         return buyAmount.divide(buyPrice, 0, RoundingMode.HALF_UP);
+    }
+
+    protected Pair<BigDecimal, LocalDate> mustSell(String code, BigDecimal avgPrice, LocalDate sellDate) {
+        Snapshot snapshot = DataCenter.getSnapshot(code, sellDate, true);
+        Snapshot preSnapshot = DataCenter.getSnapshot(code, DataCenter.getPrevTradeDate(sellDate), false);
+        if (snapshot == null || preSnapshot == null) {
+            return null;
+        }
+        BigDecimal preClosePrice = preSnapshot.getClosePrice();
+        BigDecimal topPrice = calAfterPrice(preClosePrice, BigDecimal.valueOf(0.1)).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal openPrice = snapshot.getOpenPrice();
+        if (NumberUtil.equals(topPrice, snapshot.getOpenPrice())) {
+            // 一字开，盘中炸板，则9个点卖出，否则直到不开一字或盘中炸板
+            if (NumberUtil.equals(snapshot.getAmplitude(), BigDecimal.ZERO)) {
+                LocalDate nextSellDate = DataCenter.getNextTradeDate(sellDate);
+                if (nextSellDate.isAfter(LocalDate.now())) {
+                    return Pair.of(openPrice, sellDate);
+                }
+                return mustSell(code, avgPrice, nextSellDate);
+            } else {
+                return Pair.of(calAfterPrice(preClosePrice, BigDecimal.valueOf(0.09)), sellDate);
+            }
+        } else {
+            // 竞价卖出，盈利
+            return Pair.of(openPrice, sellDate);
+        }
     }
 
     protected Pair<BigDecimal, LocalDate> trySell(String code, BigDecimal avgPrice, LocalDate sellDate) {
@@ -107,9 +135,7 @@ public class ProfitCalculate {
             BigDecimal maxLoss = BigDecimal.ZERO;
             BigDecimal maxLossRate = BigDecimal.ZERO;
             String maxProfitStock = "";
-            String maxProfitRateStock = "";
             String maxLossStock = "";
-            String maxLossRateStock = "";
 
             for (StockProfit profit : profits) {
                 totalProfit = totalProfit.add(profit.getProfit());
@@ -121,23 +147,19 @@ public class ProfitCalculate {
                     if (profit.getProfit().compareTo(maxProfit) > 0) {
                         maxProfit = profit.getProfit();
                         maxProfitStock = profit.getName() + "(" + profit.getBuyDate() + "买入)";
-                    }
-                    if (profit.getProfitRate().compareTo(maxProfitRate) > 0) {
                         maxProfitRate = profit.getProfitRate();
-                        maxProfitRateStock = profit.getName();
                     }
-                } else if (profit.getProfit().compareTo(maxLoss) <= 0){
+                } else if (profit.getProfit().compareTo(BigDecimal.ZERO) < 0){
                     lossCount++;
                     if (profit.getProfit().compareTo(maxLoss) < 0) {
                         maxLoss = profit.getProfit();
                         maxLossStock = profit.getName() + "(" + profit.getBuyDate() + "买入)";
-                    }
-                    if (profit.getProfitRate().compareTo(maxLossRate) < 0) {
                         maxLossRate = profit.getProfitRate();
-                        maxLossRateStock = profit.getName();
                     }
-                } else {
+                } else if(profit.getBuyAvgPrice().compareTo(profit.getSellAvgPrice()) == 0){
                     count++;
+                } else {
+                    log.info("无法判断盈利亏损");
                 }
             }
 
@@ -156,11 +178,9 @@ public class ProfitCalculate {
             statistic.setMaxProfitStock(maxProfitStock);
             statistic.setMaxProfit(maxProfit);
             statistic.setMaxProfitRate(maxProfitRate);
-            statistic.setMaxProfitRateStock(maxProfitRateStock);
             statistic.setMaxLoss(maxLoss);
             statistic.setMaxLossStock(maxLossStock);
             statistic.setMaxLossRate(maxLossRate);
-            statistic.setMaxLossRateStock(maxLossRateStock);
             statistic.setMonth(month);
             statistic.setCount(count);
             statistics.add(statistic);

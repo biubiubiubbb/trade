@@ -26,8 +26,8 @@ public class DataCenter {
         LOCAL_DATE_LIST = listTradeDate();
         SNAPSHOT_TABLE = HashBasedTable.create();
         Map<String, List<Snapshot>> snapshotMap = RedisUtil.getMapList("snapshot", Snapshot.class);
-        for (String code : snapshotMap.keySet()) {
-            List<Snapshot> snapshots = snapshotMap.get(code);
+        for (String date : snapshotMap.keySet()) {
+            List<Snapshot> snapshots = snapshotMap.get(date);
             for (Snapshot snapshot : snapshots) {
                 SNAPSHOT_TABLE.put(snapshot.getCode(), snapshot.getDate(), snapshot);
             }

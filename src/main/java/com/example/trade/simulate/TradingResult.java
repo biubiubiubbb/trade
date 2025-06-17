@@ -39,7 +39,7 @@ public class TradingResult {
     }
 
     public BigDecimal getSellAvgPrice() {
-        return sellPoint.getAmount().divide(sellPoint.getQuantity(), 2, RoundingMode.HALF_UP);
+        return sellPoint.getPrice();
     }
 
     public BigDecimal getSellAmount() {
