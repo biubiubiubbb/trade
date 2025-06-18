@@ -86,22 +86,26 @@ public class BreakStockProfitCalculate extends ProfitCalculate {
             return null;
         }
 
+        if(gap.compareTo(BigDecimal.valueOf(5)) > 0) {
+            return null;
+        }
+
         BigDecimal[] floatingPoBigDecimals;
         if (NumberUtil.isLess(gap, BigDecimal.valueOf(2))) {
             // 高开2个点之内
             floatingPoBigDecimals = new BigDecimal[]{BigDecimal.valueOf(2), BigDecimal.valueOf(4)};
         } else if (NumberUtil.isLess(gap, BigDecimal.valueOf(4))) {
-            // 高开4个点之内
-            floatingPoBigDecimals = new BigDecimal[]{BigDecimal.valueOf(3), BigDecimal.valueOf(5)};
+            // 高开2-4个点之内
+            floatingPoBigDecimals = new BigDecimal[]{gap, BigDecimal.valueOf(6)};
         } else if (NumberUtil.isLess(gap, BigDecimal.valueOf(8))) {
             // 高开4-8个点之内
-            floatingPoBigDecimals = new BigDecimal[]{BigDecimal.valueOf(3.5), gap};
+            floatingPoBigDecimals = new BigDecimal[]{gap};
         } else if (NumberUtil.isIn(gap, BigDecimal.valueOf(8), BigDecimal.valueOf(9.8))) {
             // 高开8个点到9.8以上
-            floatingPoBigDecimals = new BigDecimal[]{BigDecimal.valueOf(5), gap};
+            floatingPoBigDecimals = new BigDecimal[]{gap};
         } else {
             // 一字开
-            floatingPoBigDecimals = new BigDecimal[]{BigDecimal.valueOf(4), gap};
+            floatingPoBigDecimals = new BigDecimal[]{gap};
         }
         for (BigDecimal floatingPoBigDecimal : floatingPoBigDecimals) {
             BigDecimal changeRate = gap.subtract(floatingPoBigDecimal).divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
@@ -140,15 +144,15 @@ public class BreakStockProfitCalculate extends ProfitCalculate {
             if (snapshot == null) {
                 return null;
             }
-            Pair<BigDecimal, LocalDate> sellPair = trySell(code, result.getBuyAvgPrice(), tradeDate);
+            Pair<BigDecimal, LocalDate> sellPair = trySellV2(code, result.getBuyAvgPrice(), tradeDate);
             if (sellPair != null) {
                 // 符合卖出条件，结束
                 TradingPoint sellPoint = getSellPoint(result, sellPair);
                 result.setSellPoint(sellPoint);
                 return result;
             } else {
-                // 不符合卖出，尾盘若跌超过3个点则买入
-                if (snapshot.getChangeRate().compareTo(BigDecimal.valueOf(-3)) <= 0) {
+                // 不符合卖出，尾盘若跌超过5个点则买入
+                if (snapshot.getChangeRate().compareTo(BigDecimal.valueOf(-5)) <= 0) {
                     BigDecimal buyPrice = snapshot.getClosePrice();
                     BigDecimal quantity = calBuyQuantity(buyPrice);
                     BigDecimal point = snapshot.getChangeRate();
@@ -167,7 +171,7 @@ public class BreakStockProfitCalculate extends ProfitCalculate {
         // 第四天和第五天 - 只能卖
         for (int day = 3; day <= 4; day++) {
             tradeDate = DataCenter.getNextTradeDate(tradeDate);
-            Pair<BigDecimal, LocalDate> sellPair = trySell(code, result.getBuyAvgPrice(), tradeDate);
+            Pair<BigDecimal, LocalDate> sellPair = trySellV2(code, result.getBuyAvgPrice(), tradeDate);
             if (sellPair != null) {
                 TradingPoint sellPoint = getSellPoint(result, sellPair);
                 result.setSellPoint(sellPoint);
@@ -178,7 +182,13 @@ public class BreakStockProfitCalculate extends ProfitCalculate {
         if (lastSnapshot == null) {
             return null;
         }
-        // 持仓第五天，依然亏损，尾盘卖出
+//        LocalDate nextTradeDate = DataCenter.getNextTradeDate(tradeDate);
+//        Pair<BigDecimal, LocalDate> sellPair = trySellV3(code, result.getBuyAvgPrice(), result.getBuyDate(), nextTradeDate);
+//        if(sellPair == null) {
+//            return null;
+//        }
+
+//        // 持仓第五天，依然亏损，尾盘卖出
         Pair<BigDecimal, LocalDate> sellPair = Pair.of(lastSnapshot.getClosePrice(), lastSnapshot.getDate());
         TradingPoint sellPoint = getSellPoint(result, sellPair);
         result.setSellPoint(sellPoint);
@@ -187,8 +197,8 @@ public class BreakStockProfitCalculate extends ProfitCalculate {
 
     private TradingPoint getSellPoint(TradingResult result, Pair<BigDecimal, LocalDate> sellPair) {
         BigDecimal sellPrice = sellPair.getKey();
-        BigDecimal quantity = result.getBuyQuantity();
         LocalDate tradeDate = sellPair.getValue();
+        BigDecimal quantity = result.getBuyQuantity();
         return TradingPoint.builder()
                 .price(sellPrice)
                 .point(null)

@@ -18,6 +18,10 @@ public class StatisticProfit implements Serializable {
     private BigDecimal profit;
     @ExcelProperty("总收益率")
     private BigDecimal profitRate;
+    @ExcelProperty("盈利前三")
+    private String winHot3;
+    @ExcelProperty("亏损前三")
+    private String lossHot3;
     @ExcelProperty("盈利次数")
     private int profitCount;
     @ExcelProperty("亏损次数")
@@ -40,5 +44,7 @@ public class StatisticProfit implements Serializable {
     private BigDecimal maxLoss;
     @ExcelProperty("最大亏损率")
     private BigDecimal maxLossRate;
+    @ExcelProperty("备注")
+    private String remark;
 
 }

@@ -20,12 +20,12 @@ public class BreakStockDataCenter {
     public static List<BigDecimal> getSupportGaps() {
         List<BigDecimal> gapList = new ArrayList<>();
         gapList.add(BigDecimal.valueOf(0.1));
-//        gapList.add(BigDecimal.valueOf(0.5));
-//        gapList.add(BigDecimal.valueOf(1));
-//        gapList.add(BigDecimal.valueOf(2));
-//        gapList.add(BigDecimal.valueOf(3));
-//        gapList.add(BigDecimal.valueOf(4));
-//        gapList.add(BigDecimal.valueOf(5));
+        gapList.add(BigDecimal.valueOf(0.5));
+        gapList.add(BigDecimal.valueOf(1));
+        gapList.add(BigDecimal.valueOf(2));
+        gapList.add(BigDecimal.valueOf(3));
+        gapList.add(BigDecimal.valueOf(4));
+        gapList.add(BigDecimal.valueOf(5));
         return gapList;
     }
 
