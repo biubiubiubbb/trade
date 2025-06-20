@@ -12,7 +12,7 @@ import java.util.Map;
 @Data
 public class BreakStockDataCenter {
 
-    private static final String BREAK_STOCK_REDIS_KEY_PREFIX = "break-stock-gap-";
+    private static final String BREAK_STOCK_REDIS_KEY_PREFIX = "break-stock-gap-yang-";
 
     /**
      * 支持的高开的点位

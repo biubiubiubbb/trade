@@ -85,14 +85,15 @@ public class DataCenter {
         if (list.isEmpty()) {
             if (getNextIfNotExist == null) {
                 log.error("code {} date {} body {} 数据不存在", code, date, body);
+                return null;
             } else if (getNextIfNotExist) {
                 LocalDate nextTradeDate = getNextTradeDate(date);
                 log.error("code {} date {} body {} 数据不存在 {} 尝试获取下一个交易日数据", code, date, body, nextTradeDate);
-                return getSnapshot(code, getNextTradeDate(date), getNextIfNotExist);
+                return getSnapshot(code, nextTradeDate, getNextIfNotExist);
             } else {
                 LocalDate prevTradeDate = getPrevTradeDate(date);
                 log.error("code {} date {} body {} 数据不存在 {} 尝试获取上一个交易日数据", code, date, body, prevTradeDate);
-                return getSnapshot(code, getPrevTradeDate(date), getNextIfNotExist);
+                return getSnapshot(code, prevTradeDate, getNextIfNotExist);
             }
         }
         snapshot = list.get(0);
@@ -138,6 +139,12 @@ public class DataCenter {
         int index = LOCAL_DATE_LIST.indexOf(tradeDate);
         return LOCAL_DATE_LIST.get(index - 1);
     }
+
+    public static LocalDate getPrevTradeDate(LocalDate tradeDate, int pre) {
+        int index = LOCAL_DATE_LIST.indexOf(tradeDate);
+        return LOCAL_DATE_LIST.get(index - pre);
+    }
+
 
     public static boolean isTradeDate(LocalDate date) {
         return LOCAL_DATE_LIST.contains(date);

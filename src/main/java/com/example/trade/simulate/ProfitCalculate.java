@@ -75,6 +75,31 @@ public class ProfitCalculate {
         }
     }
 
+    protected Pair<BigDecimal, LocalDate> mustSellV2(String code, BigDecimal avgPrice, LocalDate sellDate) {
+        Snapshot snapshot = DataCenter.getSnapshot(code, sellDate, true);
+        Snapshot preSnapshot = DataCenter.getSnapshot(code, DataCenter.getPrevTradeDate(sellDate), false);
+        if (snapshot == null || preSnapshot == null) {
+            return null;
+        }
+        BigDecimal preClosePrice = preSnapshot.getClosePrice();
+        BigDecimal topPrice = calAfterPrice(preClosePrice, BigDecimal.valueOf(0.1)).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal openPrice = snapshot.getOpenPrice();
+        if (NumberUtil.equals(topPrice, snapshot.getOpenPrice())) {
+            // 一字开，盘中炸板，则9个点卖出，否则直到不开一字或盘中炸板
+            if (NumberUtil.equals(snapshot.getAmplitude(), BigDecimal.ZERO)) {
+                LocalDate nextSellDate = DataCenter.getNextTradeDate(sellDate);
+                if (nextSellDate.isAfter(LocalDate.now())) {
+                    return Pair.of(openPrice, sellDate);
+                }
+                return mustSellV2(code, avgPrice, nextSellDate);
+            } else {
+                return Pair.of(calAfterPrice(preClosePrice, BigDecimal.valueOf(0.09)), sellDate);
+            }
+        } else {
+            return Pair.of(openPrice, sellDate);
+        }
+    }
+
     protected Pair<BigDecimal, LocalDate> trySell(String code, BigDecimal avgPrice, LocalDate sellDate) {
         Snapshot snapshot = DataCenter.getSnapshot(code, sellDate, true);
         Snapshot preSnapshot = DataCenter.getSnapshot(code, DataCenter.getPrevTradeDate(sellDate), false);

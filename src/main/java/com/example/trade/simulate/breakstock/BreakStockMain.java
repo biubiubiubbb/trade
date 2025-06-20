@@ -18,7 +18,7 @@ public class BreakStockMain {
 
     public static void main(String[] args) {
         LocalDate startDate = LocalDate.of(2023, 1, 1);
-        LocalDate endDate = LocalDate.of(2025, 6, 13);
+        LocalDate endDate = LocalDate.of(2025, 6, 17);
         BreakStockProfitCalculate calculator = new BreakStockProfitCalculate();
         List<BigDecimal> supportGaps = BreakStockDataCenter.getSupportGaps();
         List<String> sheetNameList = supportGaps.stream().map(gap -> "高开" + gap + "点").toList();
@@ -35,7 +35,7 @@ public class BreakStockMain {
                     continue;
                 }
                 List<BreakStock> breakStocks = breakStockMap.get(date.toString());
-                if (breakStocks.isEmpty()) {
+                if (breakStocks == null || breakStocks.isEmpty()) {
                     log.info("gap {} date {} 无数据", gap, date);
                     date = DataCenter.getPrevTradeDate(date);
                     continue;
@@ -52,8 +52,8 @@ public class BreakStockMain {
             profitList.add(allProfitList);
             statisticProfitList.add(statisticProfits);
         }
-        Exec.write("昨日上影线曾涨停-收益明细.xlsx", sheetNameList, profitList, BreakStockStockProfit.class);
-        Exec.write("昨日上影线曾涨停-收益统计.xlsx", sheetNameList, statisticProfitList, StatisticProfit.class);
+        Exec.write("昨日上影线曾涨停-优化-收益明细.xlsx", sheetNameList, profitList, BreakStockStockProfit.class);
+        Exec.write("昨日上影线曾涨停-优化-收益统计.xlsx", sheetNameList, statisticProfitList, StatisticProfit.class);
     }
 
 

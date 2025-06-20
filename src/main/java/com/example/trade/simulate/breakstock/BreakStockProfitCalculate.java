@@ -3,6 +3,7 @@ package com.example.trade.simulate.breakstock;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.core.util.NumberUtil;
 import com.example.trade.DataCenter;
+import com.example.trade.MarketType;
 import com.example.trade.Snapshot;
 import com.example.trade.simulate.ProfitCalculate;
 import com.example.trade.simulate.TradeType;
@@ -26,7 +27,7 @@ public class BreakStockProfitCalculate extends ProfitCalculate {
         List<BreakStockStockProfit> profits = new ArrayList<>();
         for (BreakStock breakStock : breakStockList) {
             BreakStockStockProfit profit = this.calculateOne(breakStock);
-            if(profit == null) {
+            if (profit == null) {
                 continue;
             }
             profits.add(profit);
@@ -86,8 +87,20 @@ public class BreakStockProfitCalculate extends ProfitCalculate {
             return null;
         }
 
-        if(gap.compareTo(BigDecimal.valueOf(5)) > 0) {
+        if (gap.compareTo(BigDecimal.valueOf(5)) > 0) {
+            // 高开5个点以上，不买
             return null;
+        }
+
+        LocalDate preDate = DataCenter.getPrevTradeDate(tradeDate, 2);
+        Snapshot preSnaShot = DataCenter.getSnapshot(code, preDate, null);
+        if (preSnaShot != null) {
+            BigDecimal gapDiff = calChangeRate(preSnaShot.getClosePrice(), firstSnapshotPrev.getClosePrice()).multiply(BigDecimal.valueOf(100));
+            if (gapDiff.compareTo(BigDecimal.valueOf(10)) >= 0 && MarketType.getMarketType(code) != MarketType.MAIN_BOARD) {
+                // 10个交易日内区间涨幅超过50%，不考虑
+                log.info("10个1交易日内涨幅超过50%，不考虑 {} {}", code, tradeDate);
+                return null;
+            }
         }
 
         BigDecimal[] floatingPoBigDecimals;
@@ -131,12 +144,6 @@ public class BreakStockProfitCalculate extends ProfitCalculate {
         if (buyPoints.isEmpty()) {
             return null;
         }
-//        Pair<BigDecimal, LocalDate> mustSellPair = mustSell(code, result.getBuyAvgPrice(), DataCenter.getNextTradeDate(tradeDate));
-//        if(mustSellPair != null) {
-//            TradingPoint sellPoint = getSellPoint(result, mustSellPair);
-//            result.setSellPoint(sellPoint);
-//            return result;
-//        }
         // 第二天和第三天 - 可以买或卖
         for (int day = 1; day <= 2; day++) {
             tradeDate = DataCenter.getNextTradeDate(tradeDate);
