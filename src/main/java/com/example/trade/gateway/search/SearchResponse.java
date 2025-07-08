@@ -1,4 +1,4 @@
-package com.example.trade.search;
+package com.example.trade.gateway.search;
 
 import lombok.Data;
 
@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-public class StockQueryResponse {
+public class SearchResponse {
     private String code;
     private String msg;
     private ResponseData data;

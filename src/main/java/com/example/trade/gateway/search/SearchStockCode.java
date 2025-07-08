@@ -1,4 +1,4 @@
-package com.example.trade.search;
+package com.example.trade.gateway.search;
 
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSON;
@@ -26,8 +26,8 @@ public class SearchStockCode {
         // 高开的点数
         List<BigDecimal> gapList = BreakStockDataCenter.getSupportGaps();
         Exec.runAsync(gap -> {
-            LocalDate startDate = LocalDate.of(2023, 1, 1);
-            LocalDate endDate = LocalDate.of(2025, 6, 18);
+            LocalDate startDate = LocalDate.of(2025, 7, 1);
+            LocalDate endDate = LocalDate.of(2025, 7, 7);
             LocalDate date = startDate;
             Map<String, List<BreakStock>> map = new HashMap<>();
             while (date.isBefore(endDate) || date.isEqual(endDate)) {
@@ -51,14 +51,14 @@ public class SearchStockCode {
 
     private static List<BreakStock> getBreakStock(LocalDate yesterday, LocalDate today, BigDecimal gap) {
         String url = "https://np-tjxg-g.eastmoney.com/api/smart-tag/stock/v3/pw/search-code";
-        String keyword = StockKeywordBuilder.buildKeyword(yesterday, today, gap);
-        StockQueryRequest request = new StockQueryRequest();
+        String keyword = SearchKeywordBuilder.buildKeyword(yesterday, today, gap);
+        SearchRequest request = new SearchRequest();
         request.setKeyWord(keyword);
         System.out.println(keyword);
         String post = HttpUtil.post(url, JSON.toJSONString(request));
-        StockQueryResponse stockQueryResponse = JSON.parseObject(post, StockQueryResponse.class);
-        StockDataProcessor processor = new StockDataProcessor();
-        return processor.processResponse(stockQueryResponse, yesterday, today);
+        SearchResponse searchResponse = JSON.parseObject(post, SearchResponse.class);
+        SearchResultParser processor = new SearchResultParser();
+        return processor.processResponse(searchResponse, yesterday, today);
     }
 
 }

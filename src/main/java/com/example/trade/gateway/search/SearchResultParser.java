@@ -1,4 +1,4 @@
-package com.example.trade.search;
+package com.example.trade.gateway.search;
 
 import com.example.trade.simulate.breakstock.model.BreakStock;
 
@@ -8,9 +8,12 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-public class StockDataProcessor {
+/**
+ * @author xi.qin
+ */
+public class SearchResultParser {
 
-    public List<BreakStock> processResponse(StockQueryResponse response, LocalDate yesterday, LocalDate today) {
+    public List<BreakStock> processResponse(SearchResponse response, LocalDate yesterday, LocalDate today) {
         return response.getData().getResult().getDataList().stream()
                 .map(item->convertToStockItem(item, yesterday, today))
                 .toList();

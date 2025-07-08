@@ -25,8 +25,8 @@ public class SealStockMain {
 
 
     public static void main(String[] args) {
-        LocalDate startDate = LocalDate.of(2024, 1, 1);
-        LocalDate endDate = LocalDate.of(2025, 6, 11);
+        LocalDate startDate = LocalDate.of(2025, 6, 1);
+        LocalDate endDate = LocalDate.of(2025, 7, 7);
         List<SealStock> sealStocks = Exec.exec(DataCenter::listSealStock, startDate, endDate);
         sealStocks.sort(Comparator.comparing(SealStock::getTradeDate).reversed());
         // 首板

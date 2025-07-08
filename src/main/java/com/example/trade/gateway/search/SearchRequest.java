@@ -1,4 +1,4 @@
-package com.example.trade.search;
+package com.example.trade.gateway.search;
 
 import lombok.Data;
 
@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class StockQueryRequest {
+public class SearchRequest {
     private String keyWord;
     private int pageSize = 100;
     private int pageNo = 1;
